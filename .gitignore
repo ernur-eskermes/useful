@@ -19,6 +19,7 @@ __pycache__/
 *.py[cod]
 .pyc
 *.pyc
+src/config/social_app.py
 
 !src/db/migrations/.gitkeep
 src/db/migrations/*

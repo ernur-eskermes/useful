@@ -3,10 +3,13 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from src.app.base.utils.db import get_db
 from src.app.user import crud, schemas
 from src.config import settings
+from src.config.social_app import oauth
 from .jwt import create_access_token
 from .schemas import Token, Msg, VerificationInDB
 from .security import get_password_hash
@@ -19,6 +22,21 @@ from .service import (
 )
 
 auth_router = APIRouter()
+
+
+@auth_router.route('/github-login')
+async def login(request: Request):
+    github = oauth.create_client("github")
+    redirect_uri = request.url_for("authorize_github")
+    return await github.authorize_redirect(request, redirect_uri)
+
+
+@auth_router.route('/github-auth')
+async def authorize_github(request: Request):
+    token = await oauth.github.authorize_access_token(request)
+    resp = await oauth.github.get("user", token=token)
+    profile = resp.json()
+    return JSONResponse(profile)
 
 
 @auth_router.post('/login/access-token', response_model=Token)
