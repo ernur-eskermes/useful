@@ -1,0 +1,55 @@
+from typing import TypeVar, Generic, Type, Optional
+
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from src.db.session import Base
+
+ModelType = TypeVar("ModelType", bound=Base)
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+
+
+class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+    def __init__(self, model: Type[ModelType]):
+        self.model = model
+
+    def get_object_or_404(self, db_session: Session, id: int) -> Optional[ModelType]:
+        # obj = self.get(db_session=db_session, id=id)
+        # if not obj:
+        #     raise HTTPException
+        # return obj
+        pass
+
+    def get(self, db_session: Session, id: int) -> Optional[ModelType]:
+        return db_session.query(self.model).filter(self.model.id == id).first()
+
+    def get_multi(self, db_session: Session, *, skip=0, limit=100):
+        return db_session.query(self.model).offset(skip).limit(limit).all()
+
+    def create(self, db_session: Session, *, obj_in: CreateSchemaType, user=None) -> ModelType:
+        db_obj = self.model(**obj_in.dict())
+        db_session.add(db_obj)
+        db_session.commit()
+        db_session.refresh(db_obj)
+        return db_obj
+
+    def update(
+            self, db_session: Session, *, db_obj: ModelType, obj_in: UpdateSchemaType
+    ) -> ModelType:
+        obj_data = jsonable_encoder(obj_in)
+        update_data = obj_in.dict(skip_defaults=True)
+        for field in obj_data:
+            if field in update_data:
+                setattr(db_obj, field, update_data[field])
+        db_session.add(db_obj)
+        db_session.commit()
+        db_session.refresh(db_obj)
+        return db_obj
+
+    def remove(self, db_session: Session, *, id: int) -> ModelType:
+        obj = db_session.query(self.model).get(id)
+        db_session.delete(obj)
+        db_session.commit()
+        return obj
