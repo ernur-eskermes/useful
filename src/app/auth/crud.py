@@ -4,24 +4,24 @@ from .models import Verification
 
 
 class CRUDVerify:
-    def get(self, db_session: Session, uuid: str) -> Verification:
-        return db_session.query(
+    def get(self, db: Session, uuid: str) -> Verification:
+        return db.query(
             Verification
         ).filter(Verification.link == uuid).first()
 
-    def create(self, db_session: Session, user: int) -> Verification:
+    def create(self, db: Session, user: int) -> Verification:
         db_obj = Verification(user_id=user)
-        db_session.add(db_obj)
-        db_session.commit()
-        db_session.refresh(db_obj)
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    def remove(self, db_session: Session, uuid: str) -> Verification:
-        obj = db_session.query(
+    def remove(self, db: Session, uuid: str) -> Verification:
+        obj = db.query(
             Verification
         ).filter(Verification.link == uuid).first()
-        db_session.delete(obj)
-        db_session.commit()
+        db.delete(obj)
+        db.commit()
         return obj
 
 

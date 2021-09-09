@@ -45,3 +45,11 @@ class User(UserBaseInDB):
 
 class UserInDB(UserBaseInDB):
     password: str
+
+
+class UserPublic(UserBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+

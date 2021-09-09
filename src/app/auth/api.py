@@ -5,15 +5,18 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from src.app.base.utils.db import get_db
-from src.app.user import crud, schemas, models
+from src.app.user import crud, schemas
 from src.config import settings
 from .jwt import create_access_token
-from .logic import registration_user, verify_registration_user, \
-    get_current_user, generate_password_reset_token, \
-    verify_password_reset_token
 from .schemas import Token, Msg, VerificationInDB
 from .security import get_password_hash
 from .send_email import send_reset_password_email
+from .service import (
+    registration_user,
+    verify_registration_user,
+    generate_password_reset_token,
+    verify_password_reset_token,
+)
 
 auth_router = APIRouter()
 
@@ -48,8 +51,8 @@ def user_registration(
         new_user: schemas.UserCreateInRegistration,
         db: Session = Depends(get_db)
 ):
-    user = registration_user(new_user, db)
-    if user:
+    user_exists = registration_user(new_user, db)
+    if user_exists:
         raise HTTPException(status_code=400, detail="User already exists")
     return {"msg": "Send email"}
 
@@ -59,11 +62,6 @@ def confirm_email(uuid: VerificationInDB, db: Session = Depends(get_db)):
     if not verify_registration_user(uuid, db):
         raise HTTPException(status_code=404, detail="Not found")
     return {"msg": "Success verify email"}
-
-
-@auth_router.post("/login/test-token", response_model=schemas.User)
-def test_token(current_user: models.User = Depends(get_current_user)):
-    return current_user
 
 
 @auth_router.post("/password-recovery/{email}", response_model=Msg)
