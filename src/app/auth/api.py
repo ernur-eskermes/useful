@@ -84,7 +84,7 @@ def confirm_email(uuid: VerificationInDB, db: Session = Depends(get_db)):
 
 @auth_router.post("/password-recovery/{email}", response_model=Msg)
 def recover_password(email: str, db: Session = Depends(get_db)):
-    user = crud.user.get_by_email(db, email=email)
+    user = crud.user.get(db, email=email)
 
     if not user:
         raise HTTPException(
@@ -107,7 +107,7 @@ def reset_password(
     email = verify_password_reset_token(token)
     if not email:
         raise HTTPException(status_code=400, detail="Invalid token")
-    user = crud.user.get_by_email(db, email=email)
+    user = crud.user.get(db, email=email)
     if not user:
         raise HTTPException(
             status_code=404,
@@ -115,8 +115,5 @@ def reset_password(
         )
     elif not crud.user.is_active(user):
         raise HTTPException(status_code=400, detail="Inactive user")
-    hashed_password = get_password_hash(new_password)
-    user.password = hashed_password
-    db.add(user)
-    db.commit()
+    crud.user.change_password(db, user, new_password)
     return {"msg": "Password updated successfully"}

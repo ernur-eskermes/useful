@@ -11,41 +11,39 @@ from .schemas import UserCreate, UserUpdate
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     """CRUD for user"""
 
-    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
-        return db.query(User).filter(User.email == email).first()
-
-    def get_by_username(self, db: Session, *, username: str) -> Optional[User]:
-        return db.query(self.model).filter(
-            self.model.username == username
-        ).first()
-
-    def create(self, db: Session, *, obj_in: UserCreate, **kwargs) -> User:
-        db_obj = User(
-            username=obj_in.username,
-            email=obj_in.email,
-            password=get_password_hash(obj_in.password),
-            first_name=obj_in.first_name
+    def create(self, db: Session, schema: UserCreate, **kwargs) -> User:
+        obj = User(
+            username=schema.username,
+            email=schema.email,
+            password=get_password_hash(schema.password),
+            first_name=schema.first_name
         )
-        db.add(db_obj)
+        db.add(obj)
         db.commit()
-        db.refresh(db_obj)
-        return db_obj
+        db.refresh(obj)
+        return obj
 
     def authenticate(
             self, db: Session, *, username: str, password: str
     ) -> Optional[User]:
-        user = self.get_by_username(db, username=username)
-        if not user:
+        obj = self.get(db, username=username)
+        if not obj:
             return None
         if not verify_password(password, user.password):
             return None
-        return user
+        return obj
 
-    def is_active(self, user: User) -> bool:
-        return user.is_active
+    def is_active(self, obj: User) -> bool:
+        return obj.is_active
 
-    def is_superuser(self, user: User) -> bool:
-        return user.is_superuser
+    def is_superuser(self, obj: User) -> bool:
+        return obj.is_superuser
+
+    def change_password(self, db: Session, obj: User, new_password: str) -> None:
+        hashed_password = get_password_hash(new_password)
+        obj.password = hashed_password
+        db.add(obj)
+        db.commit()
 
 
 user = CRUDUser(User)

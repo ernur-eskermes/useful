@@ -6,7 +6,7 @@ from src.app.user.schemas import UserCreate
 
 def main():
     """ Создание супер юзера """
-    super_user = user.get_by_username(
+    super_user = user.get(
         db_session,
         username=settings.SUPERUSER_NAME
     )
@@ -19,7 +19,7 @@ def main():
             is_superuser=True,
             is_active=True
         )
-        user.create(db_session, obj_in=user_in)
+        user.create(db_session, schema=user_in)
 
 
 print('start')

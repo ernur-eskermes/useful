@@ -41,8 +41,7 @@ def get_active_user(current_user: User = Security(get_current_user)):
     return current_user
 
 
-def get_current_active_superuser(
-        current_user: User = Security(get_current_user)):
+def get_superuser(current_user: User = Security(get_current_user)):
     """Проверка суперюзер или нет"""
     if not crud.user.is_superuser(current_user):
         raise HTTPException(

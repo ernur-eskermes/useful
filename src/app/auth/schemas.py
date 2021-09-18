@@ -21,3 +21,7 @@ class Msg(BaseModel):
 class VerificationInDB(BaseModel):
     """ Схема для проверки email при регистрации """
     link: UUID
+
+
+class VerificationCreate(BaseModel):
+    user_id: int
