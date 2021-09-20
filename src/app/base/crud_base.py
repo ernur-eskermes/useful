@@ -32,9 +32,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def all(self, db: Session, skip=0, limit=100) -> list[ModelType]:
         return db.query(self.model).offset(skip).limit(limit).all()
 
-    def create(self, db: Session, schema: CreateSchemaType,
-               user=None) -> ModelType:
-        obj = self.model(**schema.dict())
+    def create(
+            self, db: Session, schema: CreateSchemaType, **kwargs
+    ) -> ModelType:
+        obj = self.model(**schema.dict(exclude={'avatar_url'}), **kwargs)
         db.add(obj)
         db.commit()
         db.refresh(obj)

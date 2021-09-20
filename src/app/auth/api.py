@@ -7,12 +7,11 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from src.app.base.utils.db import get_db
-from src.app.user import crud, schemas
+from src.app.user import crud, schemas, service
 from src.config import settings
 from src.config.social_app import oauth
 from .jwt import create_access_token
 from .schemas import Token, Msg, VerificationInDB
-from .security import get_password_hash
 from .send_email import send_reset_password_email
 from .service import (
     registration_user,
@@ -24,19 +23,29 @@ from .service import (
 auth_router = APIRouter()
 
 
-@auth_router.route('/github-login')
+@auth_router.get('/github-login')
 async def login(request: Request):
     github = oauth.create_client("github")
     redirect_uri = request.url_for("authorize_github")
     return await github.authorize_redirect(request, redirect_uri)
 
 
-@auth_router.route('/github-auth')
-async def authorize_github(request: Request):
+@auth_router.get('/github-auth')
+async def authorize_github(request: Request, db: Session = Depends(get_db)):
     token = await oauth.github.authorize_access_token(request)
     resp = await oauth.github.get("user", token=token)
-    profile = resp.json()
-    return JSONResponse(profile)
+    user = service.create_social_account(
+        db=db,
+        profile=resp.json()
+    )
+    access_token_expires = timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    return {
+        "access_token": create_access_token(
+            data={"user_id": user.id}, expires_delta=access_token_expires
+        ),
+        "token_type": "bearer",
+    }
 
 
 @auth_router.post('/login/access-token', response_model=Token)

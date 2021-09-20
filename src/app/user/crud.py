@@ -4,26 +4,28 @@ from sqlalchemy.orm import Session
 
 from src.app.auth.security import verify_password, get_password_hash
 from src.app.base.crud_base import CRUDBase
-from .models import User
-from .schemas import UserCreate, UserUpdate
+from .models import User, SocialAccount
+from . import schemas
 
 
-class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
+class CRUDUser(CRUDBase[User, schemas.UserCreate, schemas.UserUpdate]):
     """CRUD for user"""
 
-    def create(self, db: Session, schema: UserCreate, **kwargs) -> User:
+    def create(
+            self, db: Session, schema: schemas.UserCreate, **kwargs
+    ) -> User:
         obj = User(
-            username=schema.username,
-            email=schema.email,
+            **schema.dict(exclude={'password'}),
             password=get_password_hash(schema.password),
-            first_name=schema.first_name
         )
         db.add(obj)
         db.commit()
         db.refresh(obj)
         return obj
 
-    def create_superuser(self, db: Session, schema: UserCreate) -> User:
+    def create_superuser(
+            self, db: Session, schema: schemas.UserCreate
+    ) -> User:
         obj = User(
             username=schema.username,
             email=schema.email,
@@ -60,4 +62,12 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.commit()
 
 
+class CRUDSocialAccount(
+    CRUDBase[SocialAccount, schemas.SocialAccount, schemas.SocialAccount]
+):
+    """CRUD for Social Account"""
+    pass
+
+
 user = CRUDUser(User)
+social_account = CRUDSocialAccount(SocialAccount)

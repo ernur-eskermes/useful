@@ -1,14 +1,15 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class UserBase(BaseModel):
-    username: Optional[str] = None
-    email: Optional[str] = None
-    is_active: Optional[bool] = True
-    is_superuser: Optional[bool] = False
-    first_name: Optional[str] = None
+    username: Optional[str]
+    email: Optional[EmailStr]
+    is_active: Optional[bool]
+    is_superuser: Optional[bool]
+    first_name: Optional[str]
+    avatar: Optional[str]
 
 
 class UserBaseInDB(UserBase):
@@ -19,15 +20,12 @@ class UserBaseInDB(UserBase):
 
 
 class UserCreate(UserBaseInDB):
-    username: str
-    email: str
     password: str
-    first_name: str
 
 
 class UserCreateInRegistration(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
     first_name: str
 
@@ -47,8 +45,20 @@ class UserInDB(UserBaseInDB):
     password: str
 
 
+class SocialAccount(BaseModel):
+    account_id: int
+    account_url: str
+    account_login: str
+    account_name: str
+    provider: str
+
+    class Config:
+        orm_mode = True
+
+
 class UserPublic(UserBase):
     id: int
+    social_account: Optional[list[SocialAccount]]
 
     class Config:
         orm_mode = True
