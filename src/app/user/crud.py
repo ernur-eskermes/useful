@@ -23,13 +23,27 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.refresh(obj)
         return obj
 
+    def create_superuser(self, db: Session, schema: UserCreate) -> User:
+        obj = User(
+            username=schema.username,
+            email=schema.email,
+            password=get_password_hash(schema.password),
+            first_name=schema.first_name,
+            is_active=schema.is_active,
+            is_superuser=schema.is_superuser,
+        )
+        db.add(obj)
+        db.commit()
+        db.refresh(obj)
+        return obj
+
     def authenticate(
             self, db: Session, *, username: str, password: str
     ) -> Optional[User]:
         obj = self.get(db, username=username)
         if not obj:
             return None
-        if not verify_password(password, user.password):
+        if not verify_password(password, obj.password):
             return None
         return obj
 
