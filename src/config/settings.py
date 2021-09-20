@@ -20,27 +20,23 @@ BACKEND_CORS_ORIGINS = [
     "http://localhost:8080",
 ]
 
-POSTGRES_USER = "postgres"
-POSTGRES_PASSWORD = "admin123"
-POSTGRES_SERVER = "localhost"
-POSTGRES_DB = "useful"
-
 SQLALCHEMY_DATABASE_URI = (
-    f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@"
-    f"{POSTGRES_SERVER}/{POSTGRES_DB}"
+    f"postgresql://{os.environ.get('POSTGRES_USER')}:"
+    f"{os.environ.get('POSTGRES_PASSWORD')}@"
+    f"{os.environ.get('POSTGRES_HOST')}/"
+    f"{os.environ.get('POSTGRES_DB')}"
 )
 
 USERS_OPEN_REGISTRATION = True
 
-SMTP_TLS = True
-SMTP_PORT = 587
-SMTP_HOST = "smtp.gmail.com"
-SMTP_USER = "test@gmail.com"
-SMTP_PASSWORD = "joihiuhiu"
-EMAILS_FROM_EMAIL = "test@gmail.com"
+SMTP_TLS = os.environ.get("SMTP_TLS")
+SMTP_PORT = os.environ.get("SMTP_PORT")
+SMTP_HOST = os.environ.get("SMTP_HOST")
+SMTP_USER = os.environ.get("SMTP_USER")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
+EMAILS_FROM_EMAIL = os.environ.get("EMAILS_FROM_EMAIL")
 
 EMAILS_FROM_NAME = PROJECT_NAME
 EMAIL_RESET_TOKEN_EXPIRE_HOURS = 40
 EMAIL_TEMPLATES_DIR = "src/email-templates/build"
 EMAILS_ENABLED = SMTP_HOST and SMTP_PORT and EMAILS_FROM_EMAIL
-EMAIL_TEST_USER = "test@gmail.com"
