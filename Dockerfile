@@ -7,4 +7,4 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-
 
 COPY ./pyproject.toml ./app/poetry.lock* /app/
 
-RUN poetry install --no-dev
+RUN poetry install --no-root --no-dev
