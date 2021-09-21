@@ -1,11 +1,8 @@
 import jwt
-from fastapi import Security, HTTPException, Depends
+from fastapi import Security, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
 from starlette.status import HTTP_403_FORBIDDEN
 
-from src.app.base.utils.db import get_db
-from src.app.user import crud
 from src.app.user.models import User
 from src.config import settings
 from .jwt import ALGORITHM
@@ -15,9 +12,7 @@ password_reset_jwt_subject = "preset"
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/v1/login/access-token")
 
 
-def get_current_user(
-        db: Session = Depends(get_db), token: str = Security(reusable_oauth2)
-):
+async def get_current_user(token: str = Security(reusable_oauth2)):
     """Получение текущего юзера"""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY,
@@ -28,22 +23,22 @@ def get_current_user(
             status_code=HTTP_403_FORBIDDEN,
             detail="Could not validate credentials"
         )
-    user = crud.user.get(db, id=token_data.user_id)
+    user = await User.get_or_none(id=token_data.user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 
-def get_active_user(current_user: User = Security(get_current_user)):
+async def get_active_user(current_user: User = Security(get_current_user)):
     """Проверка активный юзер или нет"""
-    if not crud.user.is_active(current_user):
+    if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 
-def get_superuser(current_user: User = Security(get_current_user)):
+async def get_superuser(current_user: User = Security(get_current_user)):
     """Проверка суперюзер или нет"""
-    if not crud.user.is_superuser(current_user):
+    if not current_user.is_superuser:
         raise HTTPException(
             status_code=400,
             detail="The user doesn't have enough privileges"

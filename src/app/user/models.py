@@ -1,43 +1,35 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    sql,
-    Boolean,
-    ForeignKey
-)
-from sqlalchemy.orm import relationship
-
-from src.db.session import Base
+from tortoise import models, fields
 
 
-class User(Base):
-    __tablename__ = "user_user"
+class User(models.Model):
+    id = fields.IntField(pk=True)
+    username = fields.CharField(max_length=255, unique=True)
+    email = fields.CharField(max_length=255, unique=True)
+    password = fields.CharField(max_length=255)
+    first_name = fields.CharField(max_length=255, null=True)
+    last_name = fields.CharField(max_length=255, null=True)
+    date_join = fields.DatetimeField(auto_now_add=True)
+    last_login = fields.DatetimeField(null=True)
+    is_active = fields.BooleanField(default=False)
+    is_staff = fields.BooleanField(default=False)
+    is_superuser = fields.BooleanField(default=False)
+    avatar = fields.BinaryField(null=True)
 
-    id = Column(Integer, primary_key=True, index=True, unique=True)
-    username = Column(String, unique=True)
-    email = Column(String, unique=True)
-    password = Column(String)
-    first_name = Column(String(150))
-    last_name = Column(String(150))
-    date_join = Column(DateTime(timezone=True), server_default=sql.func.now())
-    last_login = Column(DateTime)
-    is_active = Column(Boolean, default=False)
-    is_staff = Column(Boolean, default=False)
-    is_superuser = Column(Boolean, default=False)
-    avatar = Column(String)
+    def __str__(self):
+        return self.username
 
 
-class SocialAccount(Base):
-    __tablename__ = "user_social_account"
+class SocialAccount(models.Model):
+    id = fields.IntField(pk=True)
+    account_id = fields.IntField()
+    account_url = fields.CharField(max_length=255)
+    account_login = fields.CharField(max_length=255)
+    account_name = fields.CharField(max_length=255)
+    provider = fields.CharField(max_length=255)
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name='social_accounts'
+    )
 
-    id = Column(Integer, primary_key=True, index=True, unique=True)
-    account_id = Column(Integer)
-    account_url = Column(String)
-    account_login = Column(String)
-    account_name = Column(String)
-    provider = Column(String)
-
-    user_id = Column(Integer, ForeignKey('user_user.id', ondelete='CASCADE'))
-    user = relationship("User", backref='social_account')
+    def __str__(self):
+        return self.account_login

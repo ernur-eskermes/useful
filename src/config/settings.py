@@ -20,12 +20,28 @@ BACKEND_CORS_ORIGINS = [
     "http://localhost:8080",
 ]
 
-SQLALCHEMY_DATABASE_URI = (
-    f"postgresql://{os.environ.get('POSTGRES_USER')}:"
+DATABASE_URI = (
+    f"postgres://{os.environ.get('POSTGRES_USER')}:"
     f"{os.environ.get('POSTGRES_PASSWORD')}@"
     f"{os.environ.get('POSTGRES_HOST')}/"
     f"{os.environ.get('POSTGRES_DB')}"
 )
+
+APPS_MODELS = [
+    "src.app.user.models",
+    "src.app.auth.models",
+    "aerich.models",
+]
+
+TORTOISE_ORM = {
+    "connections": {"default": DATABASE_URI},
+    "apps": {
+        "models": {
+            "models": APPS_MODELS,
+            "default_connection": "default",
+        },
+    },
+}
 
 USERS_OPEN_REGISTRATION = True
 
@@ -40,3 +56,6 @@ EMAILS_FROM_NAME = PROJECT_NAME
 EMAIL_RESET_TOKEN_EXPIRE_HOURS = 40
 EMAIL_TEMPLATES_DIR = "src/email-templates/build"
 EMAILS_ENABLED = SMTP_HOST and SMTP_PORT and EMAILS_FROM_EMAIL
+
+GITHUB_CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID")
+GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET")

@@ -1,15 +1,10 @@
 from uuid import uuid4
 
-from sqlalchemy import Column, Integer, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-
-from src.db.session import Base
+from tortoise import models, fields
 
 
-class Verification(Base):
+class Verification(models.Model):
     """Модель для подтверждения регистраций пользователя"""
-    __tablename__ = "auth_verification"
-
-    id = Column(Integer, primary_key=True, index=True, unique=True)
-    link = Column(UUID(as_uuid=True), default=uuid4)
-    user_id = Column(Integer, ForeignKey("user_user.id"))
+    id = fields.IntField(pk=True)
+    link = fields.UUIDField(default=uuid4)
+    user = fields.ForeignKeyField("models.User", related_name="verifications")

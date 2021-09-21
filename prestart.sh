@@ -3,4 +3,4 @@
 sleep 10;
 
 # Run migrations
-poetry run alembic upgrade head
+poetry run aerich upgrade

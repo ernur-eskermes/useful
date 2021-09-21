@@ -2,51 +2,48 @@ from datetime import timedelta, datetime
 from typing import Optional
 
 import jwt
-from sqlalchemy.orm import Session
+from fastapi import BackgroundTasks
+from tortoise.query_utils import Q
 
-from src.app.user import crud, schemas
+from src.app.user import schemas, service
+from src.app.user.models import User
 from src.config import settings
-from .crud import auth_verify
 from .jwt import ALGORITHM
-from .schemas import VerificationInDB, VerificationCreate
+from .models import Verification
+from .schemas import VerificationInDB
 from .send_email import send_new_account_email
 
 password_reset_jwt_subject = "preset"
 
 
-def registration_user(
-        new_user: schemas.UserCreateInRegistration,
-        db: Session
+async def registration_user(
+        schema: schemas.UserCreateInRegistration,
+        task: BackgroundTasks
 ) -> bool:
     """ Регистрация/верификация пользователя """
-    if crud.user.exists(db, username=new_user.username, email=new_user.email):
+    if await User.filter(
+            Q(username=schema.username) | Q(email=schema.email)
+    ).exists():
         return True
-    user = crud.user.create(db, schema=new_user)
-    verify = auth_verify.create(
-        db,
-        schema=VerificationCreate(user_id=user.id)
-    )
-    send_new_account_email(
-        new_user.email,
-        new_user.username,
-        new_user.password,
-        verify.link
+    user = await service.user_s.create_user(schema)
+    verify = await Verification.create(user_id=user.id)
+    task.add_task(
+        send_new_account_email,
+        email_to=schema.email,
+        username=schema.username,
+        password=schema.password,
+        uuid=verify.link
     )
     return False
 
 
-def verify_registration_user(uuid: VerificationInDB, db: Session) -> bool:
+async def verify_registration_user(uuid: VerificationInDB) -> bool:
     """ Подтверждение пользователя """
-    verify = auth_verify.get(db, link=uuid.link)
+    verify = await Verification.get(link=uuid.link)
     if not verify:
         return False
-    user = crud.user.get(db, id=verify.user_id)
-    crud.user.update(
-        db,
-        obj=user,
-        schema=schemas.UserUpdate(**{"is_active": "true"})
-    )
-    auth_verify.remove(db, link=uuid.link)
+    await User.filter(id=verify.user_id).update(is_active=True)
+    await Verification.filter(link=uuid.link).delete()
     return True
 
 

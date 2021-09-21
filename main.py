@@ -1,18 +1,20 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.requests import Request
+from tortoise.contrib.fastapi import register_tortoise
 
 from src.app import routers
 from src.config import settings
-from src.db.session import SessionLocal
 
 app = FastAPI(
     title='Useful',
     description='Useful',
     version='0.1.0'
 )
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
@@ -21,16 +23,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.middleware("http")
-async def db_session_middleware(request: Request, call_next):
-    response = Response("Internal server error", status_code=500)
-    try:
-        request.state.db = SessionLocal()
-        response = await call_next(request)
-    finally:
-        request.state.db.close()
-    return response
-
+register_tortoise(
+    app=app,
+    db_url=settings.DATABASE_URI,
+    modules={
+        "models": settings.APPS_MODELS
+    },
+    generate_schemas=True,
+    add_exception_handlers=True,
+)
 
 app.include_router(routers.api_router, prefix=settings.API_V1_STR)
