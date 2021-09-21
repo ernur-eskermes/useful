@@ -12,14 +12,12 @@ db.sqlite3
 venv
 .env
 local_config.py
-social_app.py
 .env.dev
 __pycache__/
 */__pycache__/
 *.py[cod]
 .pyc
 *.pyc
-src/config/social_app.py
 
 !src/db/migrations/.gitkeep
 src/db/migrations/*
