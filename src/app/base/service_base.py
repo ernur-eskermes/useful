@@ -15,9 +15,6 @@ class BaseService:
     update_schema: UpdateSchemaType
     get_schema: GetSchemaType
 
-    async def create(self, schema, **kwargs):
-        obj = await self.model.create(
-            **schema.dict(exclude_unset=True),
-            **kwargs
-        )
+    async def create(self, schema: CreateSchemaType):
+        obj = await self.model.create(**schema.dict(exclude_defaults=True))
         return await self.get_schema.from_tortoise_orm(obj)

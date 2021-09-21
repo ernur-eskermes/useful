@@ -30,6 +30,7 @@ DATABASE_URI = (
 APPS_MODELS = [
     "src.app.user.models",
     "src.app.auth.models",
+    "src.app.board.models",
     "aerich.models",
 ]
 
