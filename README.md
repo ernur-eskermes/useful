@@ -13,7 +13,7 @@
 **Стек:**
 - Python >= 3.9
 - FastAPI >= 0.68.1
-- SQLAlchemy
+- Tortoise ORM
 - Postgres
 
 ## Старт
@@ -41,7 +41,6 @@
 ##### 3) В корне проекта создать .env.dev
 
     SECRET_KEY=fuf823rg2388gc828^&%&^%^&T^&gf
-    SERVER_HOST=127.0.0.1
 
     # Data Base
     POSTGRES_DB=useful_dev
@@ -57,40 +56,41 @@
     SMTP_PASSWORD=pass
     EMAILS_FROM_EMAIL=robot@your.com
 
-##### 4) В папке src.config файл social_app.py-exp переименовать в social_app.py
-    
-    прописать свои данные от app GitHub
+    # GitHub 
+    GITHUB_CLIENT_ID=example_client_id
+    GITHUB_CLIENT_SECRET=example_client_secret
 
-##### 5) Создать образ
+
+##### 4) Создать образ
 
     docker-compose build
 
-##### 6) Запустить контейнер
+##### 5) Запустить контейнер
 
     docker-compose up
     
-##### 7) Создать миграции
+##### 6) Создать миграции
 
     docker exec -it useful-back aerich init-db
     
-##### 8) Создать суперюзера
+##### 7) Создать суперюзера
 
     docker exec -it useful-back python scripts/createsuperuser.py
 
-##### 9) Если не выполняет команды
+##### 8) Если не выполняет команды
 
 - Войти в контейнер - _docker exec -it useful-back bash_
 - Выполнить команды без _docker exec -it useful-back_ 
                                                         
-##### 10) Если нужно очистить БД
+##### 9) Если нужно очистить БД
 
     docker-compose down -v
  
-##### 11) Создать миграции
+##### 10) Создать миграции
 
     docker exec -it useful-back aerich migrate
  
-##### 12) Выполнить миграции
+##### 11) Выполнить миграции
 
     docker exec -it useful-back aerich upgrade
  
