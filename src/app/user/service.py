@@ -1,5 +1,7 @@
 from typing import Optional
 
+from tortoise.query_utils import Q
+
 from src.app.auth.security import get_password_hash, verify_password
 from src.app.base.service_base import BaseService
 from src.app.base.utils.generate import generate_pass, generate_email
@@ -37,6 +39,18 @@ class UserService(BaseService):
         hashed_password = get_password_hash(new_password)
         user.password = hashed_password
         await user.save()
+
+    async def get_username_email(self, username: str, email: str):
+        return await self.model.get_or_none(Q(username=username) | Q(email=email))
+
+    async def create_superuser(self, schema: schemas.UserCreate):
+        hash_password = get_password_hash(schema.dict().pop("password"))
+        return await self.create(
+            schemas.UserCreate(
+                **schema.dict(exclude={"password"}),
+                password=hash_password,
+            )
+        )
 
 
 user_s = UserService()

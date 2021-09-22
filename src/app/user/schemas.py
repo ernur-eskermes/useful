@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
-from tortoise.contrib.pydantic import pydantic_model_creator
+from pydantic import EmailStr
+from tortoise.contrib.pydantic import pydantic_model_creator, PydanticModel
 
 from .models import User
 
@@ -20,14 +20,16 @@ UserGet = pydantic_model_creator(
 )
 
 
-class UserCreateInRegistration(BaseModel):
+class UserCreateInRegistration(PydanticModel):
     username: str
     email: EmailStr
     password: str
     first_name: str
 
-    class Config:
-        orm_mode = True
+
+class UserPublic(PydanticModel):
+    id: int
+    first_name: str
 
 # class UserBase(BaseModel):
 #     username: Optional[str]

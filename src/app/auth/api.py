@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Body, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 
-from src.app.user import schemas, service
+from src.app.user import service
 from src.app.user.models import User
+from src.app.user.schemas import UserCreateInRegistration
 from src.config.social_app import oauth
 from .jwt import create_access_token
 from .schemas import Token, Msg, VerificationInDB
@@ -51,7 +52,7 @@ async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @auth_router.post("/registration", response_model=Msg)
 async def user_registration(
-        new_user: schemas.UserCreateInRegistration,
+        new_user: UserCreateInRegistration,
         task: BackgroundTasks
 ):
     user_exists = await registration_user(new_user, task=task)

@@ -1,7 +1,7 @@
 import os
 
 PROJECT_NAME = "useful"
-SERVER_HOST = "http://127.0.0.1:8000"
+SERVER_HOST = os.environ.get("SERVER_HOST")
 
 SECRET_KEY = "HIUHUIGHUIGIUguygfu78hiug78t8g78t78t87t8t8t87t78t878"
 
@@ -31,6 +31,7 @@ APPS_MODELS = [
     "src.app.user.models",
     "src.app.auth.models",
     "src.app.board.models",
+    "src.app.blog.models",
     "aerich.models",
 ]
 

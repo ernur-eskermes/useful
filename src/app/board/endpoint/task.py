@@ -1,6 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from src.app.board.models import Task, CommentTask
+from src.app.auth.permissions import get_active_user
 from src.app.board.schemas import (
     GetTask,
     CreateTask,
@@ -8,6 +8,7 @@ from src.app.board.schemas import (
     CreateCommentTask
 )
 from src.app.board.service import task_s, comment_task_s
+from src.app.user.models import User
 
 task_router = APIRouter()
 
@@ -19,34 +20,51 @@ async def create_task(schema: CreateTask):
 
 @task_router.get('/', response_model=list[GetTask])
 async def get_tasks():
-    return await GetTask.from_queryset(Task.all())
+    return await task_s.all()
 
 
 @task_router.get('/{id}', response_model=GetTask)
 async def get_task(id: int):
-    return await Task.get(id=id)
+    return await task_s.get(id=id)
 
 
 @task_router.delete('/{id}')
 async def delete_task(id: int):
-    return await Task.filter(id=id).delete()
+    return await task_s.delete(id=id)
+
+
+@task_router.put('/{id}', response_model=GetTask)
+async def update_task(id: int, schema: CreateTask):
+    return await task_s.update(schema=schema, id=id)
 
 
 @task_router.post('/comment', response_model=GetCommentTask)
-async def create_task_comment(schema: CreateCommentTask):
-    return await comment_task_s.create(schema)
+async def create_task_comment(
+        schema: CreateCommentTask,
+        user: User = Depends(get_active_user)
+):
+    return await comment_task_s.create(schema, user_id=user.id)
 
 
 @task_router.get('/comment', response_model=list[GetCommentTask])
 async def get_task_comments():
-    return await GetCommentTask.from_queryset(CommentTask.all())
+    return await comment_task_s.all()
 
 
 @task_router.get('/comment/{id}', response_model=GetCommentTask)
 async def get_task_comment(id: int):
-    return await CommentTask.get(id=id)
+    return await comment_task_s.get(id=id)
 
 
 @task_router.delete('/comment/{id}')
-async def delete_task_comment(id: int):
-    return await CommentTask.filter(id=id).delete()
+async def delete_task_comment(id: int, user: User = Depends(get_active_user)):
+    return await comment_task_s.delete(id=id, user_id=user.id)
+
+
+@task_router.put('/{id}', response_model=GetCommentTask)
+async def update_project(
+        id: int,
+        schema: CreateCommentTask,
+        user: User = Depends(get_active_user)
+):
+    return await comment_task_s.update(schema=schema, id=id, user_id=user.id)

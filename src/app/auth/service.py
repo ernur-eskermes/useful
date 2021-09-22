@@ -5,8 +5,9 @@ import jwt
 from fastapi import BackgroundTasks
 from tortoise.query_utils import Q
 
-from src.app.user import schemas, service
 from src.app.user.models import User
+from src.app.user.schemas import UserCreateInRegistration
+from src.app.user.service import user_s
 from src.config import settings
 from .jwt import ALGORITHM
 from .models import Verification
@@ -17,7 +18,7 @@ password_reset_jwt_subject = "preset"
 
 
 async def registration_user(
-        schema: schemas.UserCreateInRegistration,
+        schema: UserCreateInRegistration,
         task: BackgroundTasks
 ) -> bool:
     """ Регистрация/верификация пользователя """
@@ -25,7 +26,7 @@ async def registration_user(
             Q(username=schema.username) | Q(email=schema.email)
     ).exists():
         return True
-    user = await service.user_s.create_user(schema)
+    user = await user_s.create_user(schema)
     verify = await Verification.create(user_id=user.id)
     task.add_task(
         send_new_account_email,

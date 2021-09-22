@@ -14,46 +14,49 @@ from src.app.board.models import (
 
 class CreateCategory(PydanticModel):
     name: str
-    parent_id: Optional[int]
-
-
-class GetCategory(CreateCategory):
-    id: int
+    parent_id: Optional[int] = 0
 
     class Config:
         orm_mode = True
         orig_model = Category
 
 
+class GetCategory(CreateCategory):
+    id: int
+    children: list[CreateCategory]
+
+
 class CreateToolkit(PydanticModel):
     name: str
     parent_id: Optional[int] = 0
-
-
-class GetToolkit(CreateToolkit):
-    id: int
 
     class Config:
         orm_mode = True
         orig_model = Toolkit
 
 
+class GetToolkit(CreateToolkit):
+    id: int
+
+
 class CreateProject(PydanticModel):
     name: str
     description: str
-    user_id: int
     category_id: int
     toolkit_id: int
+
     # team: list[int]
+
+    class Config:
+        orm_mode = True
+        orig_model = Project
 
 
 class GetProject(CreateProject):
     id: int
     create_date: datetime
-
-    class Config:
-        orm_mode = True
-        orig_model = Project
+    category: GetCategory
+    user_id: int
 
 
 class CreateTask(PydanticModel):
@@ -61,28 +64,28 @@ class CreateTask(PydanticModel):
     start_date: datetime
     end_date: datetime
     project_id: int
-    worker_id: int
-
-
-class GetTask(CreateTask):
-    id: int
-    create_date: datetime
+    worker_id: Optional[int] = 0
 
     class Config:
         orm_mode = True
         orig_model = Task
 
 
+class GetTask(CreateTask):
+    id: int
+    create_date: datetime
+
+
 class CreateCommentTask(PydanticModel):
     message: str
     task_id: int
-    user_id: int
+
+    class Config:
+        orm_mode = True
+        orig_model = CommentTask
 
 
 class GetCommentTask(CreateCommentTask):
     id: int
     create_date: datetime
-
-    class Config:
-        orm_mode = True
-        orig_model = CommentTask
+    user_id: int

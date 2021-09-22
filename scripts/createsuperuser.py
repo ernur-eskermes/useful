@@ -1,40 +1,39 @@
 import os
 import sys
 
-sys.path.insert(
-    0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from tortoise import Tortoise, run_async
 from src.config import settings
-from src.app.auth.security import get_password_hash
-from src.app.user.models import User
-from tortoise import run_async, Tortoise
+from src.app.user.service import user_s
+from src.app.user.schemas import UserCreate
 
 
 async def main():
-    """ Создание супер юзера """
+    """ Создание супер юзера
+    """
     await Tortoise.init(
         db_url=settings.DATABASE_URI,
         modules={"models": settings.APPS_MODELS},
     )
     print("Create superuser")
-    username = input("Username: ")
+    name = input("Username: ")
     email = input("Email: ")
     first_name = input("First name: ")
     last_name = input("Last name: ")
     password = input("Password: ")
-
-    user = await User.exists(username=username, email=email)
-    if not user:
-        await User.create(
-            username=username,
+    super_user = await user_s.get_username_email(username=name, email=email)
+    if not super_user:
+        user_in = UserCreate(
+            username=name,
             email=email,
-            password=get_password_hash(password),
+            password=password,
             first_name=first_name,
             last_name=last_name,
-            is_superuser=True,
-            is_active=True
+            is_active=True,
+            is_superuser=True
         )
+        await user_s.create_superuser(schema=user_in)
         print("Success")
     else:
         print("Error, user existing")
