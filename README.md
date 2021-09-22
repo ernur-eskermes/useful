@@ -40,6 +40,7 @@
 
 ##### 3) В корне проекта создать .env.dev
 
+    SERVER_HOST=http://127.0.0.1:8000
     SECRET_KEY=fuf823rg2388gc828^&%&^%^&T^&gf
 
     # Data Base
